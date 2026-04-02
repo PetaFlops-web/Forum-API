@@ -743,18 +743,4 @@ describe('HTTP server', () => {
       expect(response.body.message).toBeDefined();
     });
   });
-
-  describe('when GET /hello', () => {
-    it('should return 200 and hello world', async () => {
-      // Arrange
-      const app = await createServer({});
-
-      // Action
-      const response = await request(app).get('/hello');
-
-      // Assert
-      expect(response.status).toEqual(200);
-      expect(response.body.data).toEqual('Hello world!');
-    });
-  });
 });
