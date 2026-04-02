@@ -17,7 +17,7 @@ const createServer = async (container) => {
   app.use('/threads', threads(container));
   app.use('/threads', comment(container));
   app.get('/hello', (req, res) => {
-    res.send('Dunia');
+    res.send('Hello World!');
   });
   // Global error handler
   app.use((error, req, res, next) => {
