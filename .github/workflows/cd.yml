@@ -22,4 +22,4 @@ jobs:
                       git pull origin master
                       npm ci --omit=dev --no-audit --no-fund
                       npm run migrate up
-                      pm2 restart test-error
+                      pm2 restart Forum-API
