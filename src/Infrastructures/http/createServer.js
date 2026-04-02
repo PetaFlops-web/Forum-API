@@ -17,7 +17,7 @@ const createServer = async (container) => {
   app.use('/threads', threads(container));
   app.use('/threads', comment(container));
 
-  app.get('/', (req, res) => {
+  app.get('/hello', (req, res) => {
     res.status(200).json({ data: 'Hello world!' });
   });
 
