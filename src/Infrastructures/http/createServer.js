@@ -16,7 +16,9 @@ const createServer = async (container) => {
   app.use('/authentications', authentications(container));
   app.use('/threads', threads(container));
   app.use('/threads', comment(container));
-
+  app.get('/hello', (req, res) => {
+    res.send('Dunia');
+  });
   // Global error handler
   app.use((error, req, res, next) => {
     // console.error(error);
