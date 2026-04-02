@@ -163,9 +163,7 @@ describe('HTTP server', () => {
         fullname: 'Dicoding Indonesia',
       });
 
-      const response = await request(app)
-        .post('/authentications')
-        .send(requestPayload);
+      const response = await request(app).post('/authentications').send(requestPayload);
 
       expect(response.status).toEqual(201);
       expect(response.body.status).toEqual('success');
@@ -180,9 +178,7 @@ describe('HTTP server', () => {
       };
       const app = await createServer(container);
 
-      const response = await request(app)
-        .post('/authentications')
-        .send(requestPayload);
+      const response = await request(app).post('/authentications').send(requestPayload);
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
@@ -202,15 +198,11 @@ describe('HTTP server', () => {
         fullname: 'Dicoding Indonesia',
       });
 
-      const response = await request(app)
-        .post('/authentications')
-        .send(requestPayload);
+      const response = await request(app).post('/authentications').send(requestPayload);
 
       expect(response.status).toEqual(401);
       expect(response.body.status).toEqual('fail');
-      expect(response.body.message).toEqual(
-        'kredensial yang Anda masukkan salah',
-      );
+      expect(response.body.message).toEqual('kredensial yang Anda masukkan salah');
     });
 
     it('should response 400 if login payload not contain needed property', async () => {
@@ -219,15 +211,11 @@ describe('HTTP server', () => {
       };
       const app = await createServer(container);
 
-      const response = await request(app)
-        .post('/authentications')
-        .send(requestPayload);
+      const response = await request(app).post('/authentications').send(requestPayload);
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
-      expect(response.body.message).toEqual(
-        'harus mengirimkan username dan password',
-      );
+      expect(response.body.message).toEqual('harus mengirimkan username dan password');
     });
 
     it('should response 400 if login payload wrong data type', async () => {
@@ -237,15 +225,11 @@ describe('HTTP server', () => {
       };
       const app = await createServer(container);
 
-      const response = await request(app)
-        .post('/authentications')
-        .send(requestPayload);
+      const response = await request(app).post('/authentications').send(requestPayload);
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
-      expect(response.body.message).toEqual(
-        'username dan password harus string',
-      );
+      expect(response.body.message).toEqual('username dan password harus string');
     });
   });
 
@@ -265,9 +249,7 @@ describe('HTTP server', () => {
       });
 
       const { refreshToken } = loginResponse.body.data;
-      const response = await request(app)
-        .put('/authentications')
-        .send({ refreshToken });
+      const response = await request(app).put('/authentications').send({ refreshToken });
 
       expect(response.status).toEqual(200);
       expect(response.body.status).toEqual('success');
@@ -287,9 +269,7 @@ describe('HTTP server', () => {
     it('should return 400 if refresh token not string', async () => {
       const app = await createServer(container);
 
-      const response = await request(app)
-        .put('/authentications')
-        .send({ refreshToken: 123 });
+      const response = await request(app).put('/authentications').send({ refreshToken: 123 });
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
@@ -314,15 +294,11 @@ describe('HTTP server', () => {
         .getInstance(AuthenticationTokenManager.name)
         .createRefreshToken({ username: 'dicoding' });
 
-      const response = await request(app)
-        .put('/authentications')
-        .send({ refreshToken });
+      const response = await request(app).put('/authentications').send({ refreshToken });
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
-      expect(response.body.message).toEqual(
-        'refresh token tidak ditemukan di database',
-      );
+      expect(response.body.message).toEqual('refresh token tidak ditemukan di database');
     });
   });
 
@@ -332,9 +308,7 @@ describe('HTTP server', () => {
       const refreshToken = 'refresh_token';
       await AuthenticationsTableTestHelper.addToken(refreshToken);
 
-      const response = await request(app)
-        .delete('/authentications')
-        .send({ refreshToken });
+      const response = await request(app).delete('/authentications').send({ refreshToken });
 
       expect(response.status).toEqual(200);
       expect(response.body.status).toEqual('success');
@@ -344,15 +318,11 @@ describe('HTTP server', () => {
       const app = await createServer(container);
       const refreshToken = 'refresh_token';
 
-      const response = await request(app)
-        .delete('/authentications')
-        .send({ refreshToken });
+      const response = await request(app).delete('/authentications').send({ refreshToken });
 
       expect(response.status).toEqual(400);
       expect(response.body.status).toEqual('fail');
-      expect(response.body.message).toEqual(
-        'refresh token tidak ditemukan di database',
-      );
+      expect(response.body.message).toEqual('refresh token tidak ditemukan di database');
     });
 
     it('should response 400 if payload not contain refresh token', async () => {
@@ -490,9 +460,7 @@ describe('HTTP server', () => {
       expect(response.status).toEqual(201);
       expect(response.body.status).toEqual('success');
       expect(response.body.data.addedComment).toBeDefined();
-      expect(response.body.data.addedComment.content).toEqual(
-        requestPayload.content,
-      );
+      expect(response.body.data.addedComment.content).toEqual(requestPayload.content);
       expect(response.body.data.addedComment.id).toBeDefined();
       expect(response.body.data.addedComment.owner).toBeDefined();
     });
@@ -574,9 +542,7 @@ describe('HTTP server', () => {
       };
 
       // Action
-      const response = await request(app)
-        .post('/threads/thread-123/comments')
-        .send(requestPayload);
+      const response = await request(app).post('/threads/thread-123/comments').send(requestPayload);
 
       // Assert
       expect(response.status).toEqual(401);
@@ -775,6 +741,20 @@ describe('HTTP server', () => {
       expect(response.status).toEqual(404);
       expect(response.body.status).toEqual('fail');
       expect(response.body.message).toBeDefined();
+    });
+  });
+
+  describe('when GET /hello', () => {
+    it('should return 200 and hello world', async () => {
+      // Arrange
+      const app = await createServer({});
+
+      // Action
+      const response = await request(app).get('/hello');
+
+      // Assert
+      expect(response.status).toEqual(200);
+      expect(response.body.data).toEqual('Hello world!');
     });
   });
 });
