@@ -87,3 +87,7 @@ Contoh payload dan respons dapat ditemukan di kode sumber pada route terkait di 
 - Proyek ini siap dikontainerkan dengan Docker (Dockerfile dapat ditambahkan cepat).
 - Siapkan variabel lingkungan untuk kunci JWT dan koneksi DB.
 - Gunakan migrasi otomatis pada proses CI/CD sebelum menjalankan container.
+
+## Swagger docs
+
+- http://localhost:3001/api-docs

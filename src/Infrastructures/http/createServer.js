@@ -1,6 +1,8 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import ClientError from '../../Commons/exceptions/ClientError.js';
 import DomainErrorTranslator from '../../Commons/exceptions/DomainErrorTranslator.js';
+import swaggerSpec from './swagger.js';
 import users from '../../Interfaces/http/api/users/index.js';
 import authentications from '../../Interfaces/http/api/authentications/index.js';
 import threads from '../../Interfaces/http/api/threads/index.js';
@@ -10,6 +12,22 @@ const createServer = async (container) => {
 
   // Middleware for parsing JSON
   app.use(express.json());
+
+  // Swagger UI documentation
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+      swaggerOptions: {
+        displayOperationId: true,
+        displayRequestDuration: true,
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1,
+      },
+      customCss: '.swagger-ui .topbar { display: none }',
+      customSiteTitle: 'Forum API Documentation',
+    }),
+  );
 
   // Register routes
   app.use('/users', users(container));
