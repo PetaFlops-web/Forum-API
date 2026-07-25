@@ -1,93 +1,391 @@
-## Forum API
+# Forum API
 
-Project ini adalah backend API untuk aplikasi forum yang dirancang dengan prinsip clean architecture: use-case terpisah, repositori yang dapat diganti, dan infrastruktur terisolasi.
+Backend API untuk aplikasi forum/thread. Project ini memakai Clean Architecture, JWT authentication, PostgreSQL, integration test, Swagger documentation, Docker, dan Nginx reverse proxy.
 
-## Fitur Utama
+## Tech Stack
 
-- Pendaftaran dan login pengguna
-- Auth berbasis JWT (access + refresh)
-- CRUD thread dan komentar dengan authorisasi
-- Laporkan/hapus komentar (moderasi)
-- Migrations untuk PostgreSQL
-- Struktur proyek yang siap diuji (Vitest)
+| Area | Technology |
+| --- | --- |
+| Runtime | Node.js 20 |
+| Framework | Express 5 |
+| Database | PostgreSQL |
+| Authentication | JWT access token + refresh token |
+| Password Hashing | bcryptjs |
+| Testing | Vitest + Supertest |
+| API Docs | Swagger UI |
+| Container | Docker + Docker Compose |
+| Reverse Proxy | Nginx |
 
-## Teknologi
+## Features
 
-- Node.js
-- Express (server HTTP)
-- PostgreSQL (database)
-- JWT untuk otentikasi
-- Bcrypt untuk hashing password
-- Vitest untuk testing
+- User registration and login
+- Access token and refresh token authentication
+- Refresh token persistence and invalidation on logout
+- Create thread
+- Get thread detail with comments
+- Add comment to thread
+- Soft-delete own comment
+- Request logging middleware
+- Basic rate limiting middleware
+- Health check endpoint with database status
+- Swagger API documentation
+- Unit and integration tests
 
-## Struktur Singkat
+## Architecture
 
-- [src/app.js](src/app.js#L1) — entrypoint server
-- [src/Applications](src/Applications) — implementasi logika use-case
-- [src/Interfaces/http/api] — route & middleware API
-- [Infrastructures/database/postgres] — adapter DB dan repository
-- [migrations/1627983516963_create-table-users.js](migrations/1627983516963_create-table-users.js#L1) — contoh skrip migrasi
+```text
+src/
+├── Domains/              # Entities and repository contracts
+├── Applications/         # Use cases and application security contracts
+├── Infrastructures/      # PostgreSQL repositories, HTTP server, security adapters
+├── Interfaces/http/api/  # Route handlers and route definitions
+└── app.js                # Application entry point
+```
 
-## Quick Start (Local)
+The project keeps business rules in use cases and domain entities. HTTP handlers, database adapters, JWT, and password hashing stay in the infrastructure/interface layers.
 
-Prasyarat: Node.js LTS, PostgreSQL.
+## API Endpoints
 
-1. Install dependensi:
+### Users and Authentication
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| `POST` | `/users` | No | Register user |
+| `POST` | `/authentications` | No | Login and receive tokens |
+| `PUT` | `/authentications` | No | Refresh access token |
+| `DELETE` | `/authentications` | No | Logout and invalidate refresh token |
+
+### Threads and Comments
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| `POST` | `/threads` | Yes | Create thread |
+| `GET` | `/threads/:threadId` | No | Get thread detail |
+| `POST` | `/threads/:threadId/comments` | Yes | Add comment |
+| `DELETE` | `/threads/:threadId/comments/:commentId` | Yes | Delete own comment |
+
+### System
+
+| Method | Endpoint | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/health` | No | App and database health check |
+| `GET` | `/api-docs` | No | Swagger documentation |
+
+## Quick Demo
+
+### Register
+
+```bash
+curl -X POST http://localhost:5000/users \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"demo123","fullname":"Demo User"}'
+```
+
+<details>
+<summary>Response</summary>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "addedUser": {
+      "id": "user-ViSminTjW7cUqBbhJqM52",
+      "username": "demo",
+      "fullname": "Demo User"
+    }
+  }
+}
+```
+</details>
+
+### Login
+
+```bash
+curl -X POST http://localhost:5000/authentications \
+  -H "Content-Type: application/json" \
+  -d '{"username":"dicoding","password":"secret"}'
+```
+
+<details>
+<summary>Response</summary>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "accessToken": "eyJhbG...",
+    "refreshToken": "eyJhbG..."
+  }
+}
+```
+</details>
+
+### Create Thread (authenticated)
+
+```bash
+ACCESS="<accessToken from login>"  # paste token from login response
+
+curl -X POST http://localhost:5000/threads \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS" \
+  -d '{"title":"Tips Node.js","body":"Share tips terbaik!"}'
+```
+
+<details>
+<summary>Response</summary>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "addedThread": {
+      "id": "thread-ByKn9FR3V9VBdEBM",
+      "title": "Tips Node.js",
+      "owner": "user-I0XQxATMWx0pqY5cJO_pn"
+    }
+  }
+}
+```
+</details>
+
+### Get Thread Detail
+
+```bash
+curl -s http://localhost:5000/threads/thread-ByKn9FR3V9VBdEBM
+```
+
+<details>
+<summary>Response</summary>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "thread": {
+      "id": "thread-ByKn9FR3V9VBdEBM",
+      "title": "Tips Node.js",
+      "body": "Share tips terbaik!",
+      "date": "2026-07-25T11:26:12.532Z",
+      "username": "dicoding",
+      "comments": []
+    }
+  }
+}
+```
+</details>
+
+### Health Check
+
+```bash
+curl http://localhost:5000/health
+```
+
+<details>
+<summary>Response</summary>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "uptime": 477.47,
+    "timestamp": "2026-07-25T18:25:52.915Z",
+    "database": {
+      "status": "connected",
+      "latency": "4ms"
+    },
+    "memory": {
+      "rss": "73MB",
+      "heapUsed": "14MB"
+    }
+  }
+}
+```
+</details>
+
+### Swagger UI
+
+Explore all endpoints interactively at:
+
+```text
+http://localhost:5000/api-docs
+```
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL
+- npm
+
+### Install
 
 ```bash
 npm install
+cp .env.example .env
 ```
 
-2. Setup environment (contoh `.env`):
+Edit `.env` sesuai database lokal:
 
-```
+```env
 NODE_ENV=development
-PORT=3000
-DATABASE_URL=postgres://user:pass@localhost:5432/forum_db
-ACCESS_TOKEN_KEY=your_access_token_secret
-REFRESH_TOKEN_KEY=your_refresh_token_secret
+PORT=5000
+PGHOST=localhost
+PGPORT=5432
+PGUSER=forumuser
+PGPASSWORD=forumpassword
+PGDATABASE=forum_api
+ACCESS_TOKEN_KEY=your_super_secret_access_token_key_here
+REFRESH_TOKEN_KEY=your_super_secret_refresh_token_key_here
+ACCESS_TOKEN_AGE=1800
 ```
 
-3. Jalankan migrasi database (gunakan tool migrasi bawaan):
+### Database Migration
 
 ```bash
-# contoh, sesuaikan dengan setup migrasi project
-npm run migrate
+npm run migrate up
 ```
 
-4. Jalankan server:
+### Seed Sample Data
 
 ```bash
-npm start
+npm run seed
 ```
 
-5. Jalankan test suite:
+Creates:
+
+- **3 users** — `dicoding`, `alice`, `bob` (password: `secret`)
+- **2 threads** — sample discussions
+- **5 comments** — conversation across threads
+
+### Run App
+
+```bash
+npm run start:dev
+```
+
+App berjalan di:
+
+```text
+http://localhost:5000
+```
+
+Swagger docs:
+
+```text
+http://localhost:5000/api-docs
+```
+
+## Docker Setup
+
+Docker Compose menjalankan:
+
+| Service | Host Port | Container Port |
+| --- | ---: | ---: |
+| app | `5000` | `5000` |
+| postgres | `5433` | `5432` |
+| nginx | `8080` | `80` |
+
+> Host port `5433` dan `8080` dipakai agar tidak bentrok dengan PostgreSQL lokal di `5432` dan web server lokal di `80`.
+
+### Start
+
+```bash
+docker compose up -d --build
+```
+
+### Check
+
+```bash
+docker compose ps
+curl http://localhost:5000/health
+curl http://localhost:8080/health
+```
+
+Expected health response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "database": {
+      "status": "connected"
+    }
+  }
+}
+```
+
+### Stop
+
+```bash
+docker compose down
+```
+
+## Testing
+
+Run all tests:
 
 ```bash
 npm test
 ```
 
-## Endpoint Utama
+Latest local verification:
 
-- POST /users — daftar pengguna
-- POST /authentications — login (menghasilkan access + refresh token)
-- POST /threads — buat thread (auth)
-- POST /threads/:threadId/comments — tambah komentar (auth)
-- GET /threads/:threadId — detail thread + komentar
+```text
+Test Files  39 passed (39)
+Tests       132 passed (132)
+```
 
-Contoh payload dan respons dapat ditemukan di kode sumber pada route terkait di [src/Interfaces/http/api](src/Interfaces/http/api#L1)
+Run coverage:
 
-## Testing & Kualitas
+```bash
+npm run test:coverage
+```
 
-- Gunakan `npm test` untuk menjalankan suite unit & integrasi (Vitest).
-- Folder `src/*/_test` berisi unit test untuk use-case dan utilitas keamanan.
+Run lint:
 
-## Deployment
+```bash
+npm run lint
+```
 
-- Proyek ini siap dikontainerkan dengan Docker (Dockerfile dapat ditambahkan cepat).
-- Siapkan variabel lingkungan untuk kunci JWT dan koneksi DB.
-- Gunakan migrasi otomatis pada proses CI/CD sebelum menjalankan container.
+## Environment Files
 
-## Swagger docs
+- `.env.example` is safe to commit as a template.
+- `.env` and `.test.env` are ignored because they may contain local credentials or secrets.
 
-- http://localhost:3001/api-docs
+## Project Structure
+
+```text
+Forum-API/
+├── migrations/                         # PostgreSQL migrations
+├── src/
+│   ├── Applications/
+│   │   ├── security/                    # Security contracts
+│   │   └── use_case/                    # Business use cases
+│   ├── Commons/
+│   │   ├── config.js                    # Environment config
+│   │   └── exceptions/                  # Custom errors
+│   ├── Domains/
+│   │   ├── authentications/
+│   │   ├── comments/
+│   │   ├── threads/
+│   │   └── users/
+│   ├── Infrastructures/
+│   │   ├── database/postgres/           # PostgreSQL pool
+│   │   ├── http/                        # Express server, middleware, Swagger
+│   │   ├── repository/                  # PostgreSQL repository implementations
+│   │   └── security/                    # JWT and bcrypt adapters
+│   ├── Interfaces/http/api/             # HTTP handlers and routes
+│   └── app.js
+├── tests/                               # Test helpers and integration tests
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── nginx.docker.conf
+├── vitest.config.js
+└── package.json
+```
+
+## License
+
+ISC
