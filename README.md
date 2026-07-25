@@ -1,6 +1,6 @@
 # Forum API
 
-Backend API untuk aplikasi forum/thread. Project ini memakai Clean Architecture, JWT authentication, PostgreSQL, integration test, Swagger documentation, Docker, dan Nginx reverse proxy.
+Backend API for a forum/thread application. Built with Clean Architecture (DDD), JWT authentication, PostgreSQL, integration tests, Swagger documentation, Docker, and Nginx reverse proxy.
 
 ## Tech Stack
 
@@ -33,7 +33,7 @@ Backend API untuk aplikasi forum/thread. Project ini memakai Clean Architecture,
 
 ## Architecture
 
-```text
+```
 src/
 ├── Domains/              # Entities and repository contracts
 ├── Applications/         # Use cases and application security contracts
@@ -42,7 +42,7 @@ src/
 └── app.js                # Application entry point
 ```
 
-The project keeps business rules in use cases and domain entities. HTTP handlers, database adapters, JWT, and password hashing stay in the infrastructure/interface layers.
+Business rules live in use cases and domain entities. HTTP handlers, database adapters, JWT, and password hashing stay in the infrastructure/interface layers.
 
 ## API Endpoints
 
@@ -123,12 +123,12 @@ curl -X POST http://localhost:5000/authentications \
 ### Create Thread (authenticated)
 
 ```bash
-ACCESS="<accessToken from login>"  # paste token from login response
+ACCESS="<accessToken from login>"
 
 curl -X POST http://localhost:5000/threads \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS" \
-  -d '{"title":"Tips Node.js","body":"Share tips terbaik!"}'
+  -H "Authorization: Bearer *** \
+  -d '{"title":"Tips Node.js","body":"Share your best tips!"}'
 ```
 
 <details>
@@ -151,7 +151,7 @@ curl -X POST http://localhost:5000/threads \
 ### Get Thread Detail
 
 ```bash
-curl -s http://localhost:5000/threads/thread-ByKn9FR3V9VBdEBM
+curl http://localhost:5000/threads/thread-ByKn9FR3V9VBdEBM
 ```
 
 <details>
@@ -164,7 +164,7 @@ curl -s http://localhost:5000/threads/thread-ByKn9FR3V9VBdEBM
     "thread": {
       "id": "thread-ByKn9FR3V9VBdEBM",
       "title": "Tips Node.js",
-      "body": "Share tips terbaik!",
+      "body": "Share your best tips!",
       "date": "2026-07-25T11:26:12.532Z",
       "username": "dicoding",
       "comments": []
@@ -206,7 +206,7 @@ curl http://localhost:5000/health
 
 Explore all endpoints interactively at:
 
-```text
+```
 http://localhost:5000/api-docs
 ```
 
@@ -225,7 +225,7 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` sesuai database lokal:
+Edit `.env` to match your local database:
 
 ```env
 NODE_ENV=development
@@ -264,21 +264,21 @@ Creates:
 npm run start:dev
 ```
 
-App berjalan di:
+Server starts at:
 
-```text
+```
 http://localhost:5000
 ```
 
-Swagger docs:
+Swagger docs at:
 
-```text
+```
 http://localhost:5000/api-docs
 ```
 
 ## Docker Setup
 
-Docker Compose menjalankan:
+Docker Compose runs:
 
 | Service | Host Port | Container Port |
 | --- | ---: | ---: |
@@ -286,7 +286,7 @@ Docker Compose menjalankan:
 | postgres | `5433` | `5432` |
 | nginx | `8080` | `80` |
 
-> Host port `5433` dan `8080` dipakai agar tidak bentrok dengan PostgreSQL lokal di `5432` dan web server lokal di `80`.
+Host ports `5433` and `8080` are used to avoid conflicts with local PostgreSQL on `5432` and local web server on `80`.
 
 ### Start
 
@@ -329,8 +329,6 @@ Run all tests:
 npm test
 ```
 
-Latest local verification:
-
 ```text
 Test Files  39 passed (39)
 Tests       132 passed (132)
@@ -355,9 +353,9 @@ npm run lint
 
 ## Project Structure
 
-```text
+```
 Forum-API/
-├── migrations/                         # PostgreSQL migrations
+├── migrations/                          # PostgreSQL migrations
 ├── src/
 │   ├── Applications/
 │   │   ├── security/                    # Security contracts
